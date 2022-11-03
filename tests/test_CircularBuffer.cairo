@@ -27,3 +27,17 @@ func test_pushBack{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     assert newBuffer.head = myCircularBuffer.head + 1;
     return ();
 }
+
+@external
+func test_popFront{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    alloc_locals;
+    let myCircularBuffer: CircularBuffer = circularBuffer.create(3, 1);
+    let item: felt* = alloc();
+    assert item[0] = 42;
+    let newBuffer: CircularBuffer = circularBuffer.pushBack(myCircularBuffer, item, 0);
+    let (secondBuffer: CircularBuffer, item: felt*) = circularBuffer.popFront(newBuffer);
+    assert [item] = 42;
+    assert secondBuffer.count = 0;
+    assert secondBuffer.tail = secondBuffer.head;
+    return ();
+}

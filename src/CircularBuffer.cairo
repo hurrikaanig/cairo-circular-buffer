@@ -79,6 +79,7 @@ namespace circularBuffer {
     func popFront{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer
     ) -> (circularBuffer: CircularBuffer, item: felt*) {
+        alloc_locals;
         if (_cb.count == 0) {
             with_attr error_mesage("nothing to pop") {
                     assert 0 = 1;
@@ -86,10 +87,14 @@ namespace circularBuffer {
         }
         let item: felt* = alloc();
         memcpy(item, _cb.tail, _cb.itemSize);
-        _cb.tail = _cb.tail + _cb.itemSize;
-        if (_cb.tail == _cb.bufferEnd) {
-            _cb.tail = _cb.buffer;
+
+        local newTail: felt*;
+        if (_cb.tail + _cb.itemSize == _cb.bufferEnd) {
+            assert newTail = _cb.buffer;
+        } else {
+            newTail = _cb.tail + _cb.itemSize;
         }
+
         let circularBuffer = CircularBuffer(
             buffer = _cb.buffer,
             bufferEnd = _cb.bufferEnd,
@@ -97,7 +102,7 @@ namespace circularBuffer {
             count = _cb.count - 1,
             itemSize = _cb.itemSize,
             head = _cb.head,
-            tail = _cb.tail
+            tail = newTail
         );
         return (circularBuffer, item);
     }
