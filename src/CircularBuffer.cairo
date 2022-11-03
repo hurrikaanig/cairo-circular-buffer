@@ -59,7 +59,7 @@ namespace circularBuffer {
         local newHead: felt*;
         
         if (_cb.head + _cb.itemSize == _cb.tail) {
-            _cb.head = _cb.buffer;
+            newHead = _cb.buffer;
         } else {
             newHead = _cb.head + _cb.itemSize;
         }
@@ -115,6 +115,5 @@ namespace circularBuffer {
         memcpy(_newBuffer + _cb.count + 1, _cb.buffer + _cb.count + 1, _cb.maxSize - _cb.count - 1);
         return();
     }
-
 
 }
