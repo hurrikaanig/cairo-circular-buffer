@@ -9,16 +9,16 @@ struct CircularBuffer {
     bufferEnd: felt*,
     maxSize: felt,
     count: felt,
-    size: felt,
+    itemSize: felt,
     head: felt*,
     tail: felt*,
 }
 
 namespace circularBuffer {
 
-    func init{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
-        _cb: CircularBuffer, _maxSize: felt, _itemSize: felt 
-    ) {
+    func create{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
+        _maxSize: felt, _itemSize: felt 
+    ) -> (circularBuffer: CircularBuffer) {
         let buffer: felt* = alloc();
         let bufferEnd: felt* = buffer + _maxSize * _itemSize;
         let head: felt* = buffer;
@@ -28,42 +28,52 @@ namespace circularBuffer {
             bufferEnd = bufferEnd,
             maxSize = _maxSize,
             count = 0,
+            itemSize = _itemSize,
             head = head,
             tail = tail,
         );
+        return (newBuffer,);
     }
 
 
     func pushBack{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer, _item: felt*, _overwrite: felt
     ) -> (circularBuffer: CircularBuffer){
+        alloc_locals;
         if (_cb.count != _cb.maxSize) {
-            memcpy(_cb.head, _item, _cb.size);
+            memcpy(_cb.head, _item, _cb.itemSize);
+            tempvar syscall_ptr = syscall_ptr;
+            tempvar pedersen_ptr = pedersen_ptr;
+            tempvar range_check_ptr = range_check_ptr;
         } else {
             with_attr error_mesage("cannot overwrite") {
                 assert _overwrite = 1;
             }
-            local buffer: felt*;
+            let buffer: felt* = alloc();
             newBuffer(_cb, buffer, _item, 0);
             _cb.buffer = buffer;
+            tempvar syscall_ptr = syscall_ptr;
+            tempvar pedersen_ptr = pedersen_ptr;
+            tempvar range_check_ptr = range_check_ptr;
         }
-
-        _cb.head = _cb.head + _cb.size;
-
-        if (_cb.head == _cb.tail) {
+        local newHead: felt*;
+        
+        if (_cb.head + _cb.itemSize == _cb.tail) {
             _cb.head = _cb.buffer;
+        } else {
+            newHead = _cb.head + _cb.itemSize;
         }
-
+        
         let circularBuffer = CircularBuffer(
             buffer = _cb.buffer,
             bufferEnd = _cb.bufferEnd,
             maxSize = _cb.maxSize,
             count = _cb.count + 1,
             itemSize = _cb.itemSize,
-            head = _cb.head,
+            head = newHead,
             tail = _cb.tail
         );
-        return (circularBuffer);
+        return (circularBuffer,);
     }
 
     func popFront{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
@@ -75,8 +85,8 @@ namespace circularBuffer {
             }
         }
         let item: felt* = alloc();
-        memcpy(item, _cb.tail, _cb.size);
-        _cb.tail = _cb.tail + _cb.size;
+        memcpy(item, _cb.tail, _cb.itemSize);
+        _cb.tail = _cb.tail + _cb.itemSize;
         if (_cb.tail == _cb.bufferEnd) {
             _cb.tail = _cb.buffer;
         }
@@ -93,12 +103,12 @@ namespace circularBuffer {
     }
 
     func newBuffer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
-        _cb: CircularBuffer, _newBuffer: felt*, _item: felt, _index: felt
+        _cb: CircularBuffer, _newBuffer: felt*, _item: felt*, _index: felt
     ) {
-        _newBuffer = alloc();
         memcpy(_newBuffer, _cb.buffer, _cb.count);
-        assert _newBuffer[_cb.count] = _item;
+        assert _newBuffer[_cb.count] = [_item];
         memcpy(_newBuffer + _cb.count + 1, _cb.buffer + _cb.count + 1, _cb.maxSize - _cb.count - 1);
+        return();
     }
 
 
