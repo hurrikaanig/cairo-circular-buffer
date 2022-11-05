@@ -145,7 +145,7 @@ namespace circularBuffer {
         return (circularBuffer, item);
     }
 
-    // copy data from old to new buffer and add the new item
+    // copy data from old to new buffer and replace the new item
     func overwrite{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer, _item: felt*
     ) -> (buffer: felt*) {
