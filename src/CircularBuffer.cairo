@@ -61,10 +61,9 @@ namespace circularBuffer {
             assert buffer = _cb.buffer;
             assert bufferEnd = _cb.bufferEnd;
             assert head = _cb.head;
-            assert headIndex = _cb.headIndex + 1;
             assert tail = _cb.tail;
             assert tailIndex = _cb.tailIndex;
-            assert count = _cb.count;
+            assert count = _cb.count + 1;
             tempvar syscall_ptr = syscall_ptr;
             tempvar pedersen_ptr = pedersen_ptr;
             tempvar range_check_ptr = range_check_ptr;
@@ -75,10 +74,9 @@ namespace circularBuffer {
             let newBuffer: felt* = overwrite(_cb, _item); 
             assert buffer = newBuffer;
             assert bufferEnd = buffer + _cb.maxSize * _cb.itemSize;
-            assert head = buffer + _cb.headIndex + 1;
-            assert tail = buffer + _cb.tailIndex + 1;
-            assert headIndex = _cb.headIndex + 1;
-            assert tailIndex = _cb.tailIndex + 1;
+            assert head = buffer + _cb.headIndex;
+            assert tail = buffer + _cb.tailIndex + _cb.itemSize;
+            assert tailIndex = _cb.tailIndex + _cb.itemSize;
             assert count = _cb.count;
             tempvar syscall_ptr = syscall_ptr;
             tempvar pedersen_ptr = pedersen_ptr;
@@ -86,18 +84,22 @@ namespace circularBuffer {
         }
 
         local newHead: felt*;
-        
+        %{print("head: ",ids.head)%}
+        %{print("bufferEnd: ",ids.bufferEnd)%}
         if (head + _cb.itemSize == bufferEnd) {
             assert newHead = buffer;
+            assert headIndex = 0;
         } else {
             assert newHead = head + _cb.itemSize;
+            assert headIndex = _cb.headIndex + _cb.itemSize;
         }
+        %{print("head after: ",ids.newHead)%}
         
         let circularBuffer = CircularBuffer(
             buffer = buffer,
             bufferEnd = bufferEnd,
             maxSize = _cb.maxSize,
-            count = count + 1,
+            count = count,
             itemSize = _cb.itemSize,
             head = newHead,
             tail = tail,
@@ -123,7 +125,7 @@ namespace circularBuffer {
 
         local newTail: felt*;
         local newTailIndex: felt;
-        if (_cb.tail + _cb.itemSize == _cb.bufferEnd) {
+        if (_cb.tail == _cb.bufferEnd) {
             assert newTail = _cb.buffer;
             assert newTailIndex = 0;
         } else {
@@ -156,7 +158,7 @@ namespace circularBuffer {
         // insert new item
         memcpy(newBuffer + _cb.tailIndex, _item, _cb.itemSize);
         // copy after item to replace
-        memcpy(newBuffer + _cb.tailIndex + 1, _cb.tail + 1, _cb.itemSize * (_cb.maxSize - _cb.tailIndex) - 1);
+        memcpy(newBuffer + _cb.tailIndex + _cb.itemSize, _cb.tail + _cb.itemSize, _cb.itemSize * (_cb.maxSize - _cb.tailIndex) - _cb.itemSize);
 
         return(newBuffer,);
     }

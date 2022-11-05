@@ -97,6 +97,8 @@ func test_push_should_overwrite{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     assert newBuffer4.buffer[0] = 9;
     assert newBuffer4.buffer[1] = 12;
     assert newBuffer4.buffer[2] = 1;
+    assert newBuffer4.tail = newBuffer4.buffer + 1;
+    assert newBuffer4.head = newBuffer4.buffer + 1;
 
     return ();
 }
