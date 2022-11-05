@@ -5,7 +5,7 @@ from starkware.cairo.common.alloc import alloc
 from src.CircularBuffer import (circularBuffer, CircularBuffer)
 
 @external
-func test_CreateCircularBuffer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func test_create_CircularBuffer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let myCircularBuffer: CircularBuffer = circularBuffer.create(3, 1);
     assert myCircularBuffer.maxSize = 3;
     assert myCircularBuffer.itemSize = 1;

@@ -5,17 +5,18 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 
 struct CircularBuffer {
-    buffer: felt*,
-    bufferEnd: felt*,
-    maxSize: felt,
-    count: felt,
-    itemSize: felt,
-    head: felt*,
-    tail: felt*,
+    buffer: felt*,      // pointer to the buffer where data is stored
+    bufferEnd: felt*,   // pointer to the end of the buffer
+    maxSize: felt,      // maximum of items in the buffer
+    count: felt,        // current number of items in the buffer
+    itemSize: felt,     // size of an item in felt
+    head: felt*,        // pointer to head
+    tail: felt*,        // pointer to tail
 }
 
 namespace circularBuffer {
 
+    // create a new Circular Buffer
     func create{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _maxSize: felt, _itemSize: felt 
     ) -> (circularBuffer: CircularBuffer) {
@@ -35,7 +36,8 @@ namespace circularBuffer {
         return (newBuffer,);
     }
 
-
+    // Push an item into the buffer
+    // Returns the modified buffer
     func pushBack{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer, _item: felt*, _overwrite: felt
     ) -> (circularBuffer: CircularBuffer){
@@ -76,6 +78,8 @@ namespace circularBuffer {
         return (circularBuffer,);
     }
 
+    // Remove an item from the buffer
+    // Return the poped item
     func popFront{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer
     ) -> (circularBuffer: CircularBuffer, item: felt*) {
@@ -107,6 +111,7 @@ namespace circularBuffer {
         return (circularBuffer, item);
     }
 
+    // copy data from old to new buffer and add the new item
     func newBuffer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer, _newBuffer: felt*, _item: felt*, _index: felt
     ) {
