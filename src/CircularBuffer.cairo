@@ -75,8 +75,13 @@ namespace circularBuffer {
             assert buffer = newBuffer;
             assert bufferEnd = buffer + _cb.maxSize * _cb.itemSize;
             assert head = buffer + _cb.headIndex;
-            assert tail = buffer + _cb.tailIndex + _cb.itemSize;
-            assert tailIndex = _cb.tailIndex + _cb.itemSize;
+            if (buffer + _cb.tailIndex + _cb.itemSize == bufferEnd) {
+                assert tail = buffer;
+                assert tailIndex = 0;
+            } else {
+                assert tail = buffer + _cb.tailIndex + _cb.itemSize;
+                assert tailIndex = _cb.tailIndex + _cb.itemSize;
+            }
             assert count = _cb.count;
             tempvar syscall_ptr = syscall_ptr;
             tempvar pedersen_ptr = pedersen_ptr;
@@ -84,8 +89,6 @@ namespace circularBuffer {
         }
 
         local newHead: felt*;
-        %{print("head: ",ids.head)%}
-        %{print("bufferEnd: ",ids.bufferEnd)%}
         if (head + _cb.itemSize == bufferEnd) {
             assert newHead = buffer;
             assert headIndex = 0;
@@ -93,7 +96,6 @@ namespace circularBuffer {
             assert newHead = head + _cb.itemSize;
             assert headIndex = _cb.headIndex + _cb.itemSize;
         }
-        %{print("head after: ",ids.newHead)%}
         
         let circularBuffer = CircularBuffer(
             buffer = buffer,
@@ -125,7 +127,7 @@ namespace circularBuffer {
 
         local newTail: felt*;
         local newTailIndex: felt;
-        if (_cb.tail == _cb.bufferEnd) {
+        if (_cb.tail + _cb.itemSize == _cb.bufferEnd) {
             assert newTail = _cb.buffer;
             assert newTailIndex = 0;
         } else {
@@ -158,8 +160,12 @@ namespace circularBuffer {
         // insert new item
         memcpy(newBuffer + _cb.tailIndex, _item, _cb.itemSize);
         // copy after item to replace
-        memcpy(newBuffer + _cb.tailIndex + _cb.itemSize, _cb.tail + _cb.itemSize, _cb.itemSize * (_cb.maxSize - _cb.tailIndex) - _cb.itemSize);
-
+        let address1: felt* = newBuffer + _cb.tailIndex + _cb.itemSize;
+        let address2: felt* = _cb.tail + _cb.itemSize;
+        let address3: felt = _cb.itemSize * (_cb.maxSize - _cb.tailIndex) - _cb.itemSize;
+        if (_cb.buffer + _cb.tailIndex + _cb.itemSize != _cb.bufferEnd) {
+            memcpy(newBuffer + _cb.tailIndex + _cb.itemSize, _cb.tail + _cb.itemSize, _cb.itemSize * (_cb.maxSize - _cb.tailIndex) - _cb.itemSize);
+        }
         return(newBuffer,);
     }
 
