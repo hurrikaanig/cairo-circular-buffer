@@ -209,3 +209,42 @@ func test_size_two_items{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 
     return ();
 }
+
+@external
+func test_pop_everything{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    alloc_locals;
+    let myCircularBuffer: CircularBuffer = circularBuffer.create(3, 1);
+    let item1: felt* = alloc();
+    assert item1[0] = 42;
+    let newBuffer1: CircularBuffer = circularBuffer.pushBack(myCircularBuffer, item1, 0);
+    let item2: felt* = alloc();
+    assert item2[0] = 12;
+    let newBuffer2: CircularBuffer = circularBuffer.pushBack(newBuffer1, item2, 0);
+    let item3: felt* = alloc();
+    assert item3[0] = 1;
+    let newBuffer3: CircularBuffer = circularBuffer.pushBack(newBuffer2, item3, 0);
+
+    let (popBuffer1: CircularBuffer, item: felt*) = circularBuffer.popFront(newBuffer3);
+    assert [item] = 42;
+    assert popBuffer1.count = 2;
+    assert popBuffer1.tail = popBuffer1.buffer + myCircularBuffer.itemSize;
+
+    let (popBuffer2: CircularBuffer, item2: felt*) = circularBuffer.popFront(popBuffer1);
+    assert [item2] = 12;
+    assert popBuffer2.count = 1;
+    assert popBuffer2.tail = popBuffer2.buffer + myCircularBuffer.itemSize * 2;
+
+    let (popBuffer3: CircularBuffer, item3: felt*) = circularBuffer.popFront(popBuffer2);
+    assert [item3] = 1;
+    assert popBuffer3.count = 0;
+    assert popBuffer3.tail = popBuffer3.buffer;
+
+    let item: felt* = alloc();
+    assert item[0] = 42;
+    let rePush: CircularBuffer = circularBuffer.pushBack(popBuffer3, item, 0);
+    assert rePush.buffer[0] = 42;
+    assert rePush.count = 1;
+    assert rePush.head = rePush.buffer + rePush.itemSize;
+
+    return ();
+}

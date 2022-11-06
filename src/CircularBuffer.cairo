@@ -112,7 +112,7 @@ namespace circularBuffer {
     }
 
     // Remove an item from the buffer
-    // Return the item
+    // Return the new buffer and poped item
     func popFront{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} (
         _cb: CircularBuffer
     ) -> (circularBuffer: CircularBuffer, item: felt*) {
@@ -124,7 +124,8 @@ namespace circularBuffer {
         }
         let item: felt* = alloc();
         memcpy(item, _cb.tail, _cb.itemSize);
-
+        let ptail: felt* = _cb.tail;
+        %{print("tail: ", ids.ptail)%}
         local newTail: felt*;
         local newTailIndex: felt;
         if (_cb.tail + _cb.itemSize == _cb.bufferEnd) {
@@ -146,6 +147,8 @@ namespace circularBuffer {
             headIndex = _cb.headIndex,
             tailIndex = newTailIndex,
         );
+        %{print("tail: ", ids.newTail)%}
+
         return (circularBuffer, item);
     }
 
