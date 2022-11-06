@@ -125,7 +125,6 @@ namespace circularBuffer {
         let item: felt* = alloc();
         memcpy(item, _cb.tail, _cb.itemSize);
         let ptail: felt* = _cb.tail;
-        %{print("tail: ", ids.ptail)%}
         local newTail: felt*;
         local newTailIndex: felt;
         if (_cb.tail + _cb.itemSize == _cb.bufferEnd) {
@@ -147,7 +146,6 @@ namespace circularBuffer {
             headIndex = _cb.headIndex,
             tailIndex = newTailIndex,
         );
-        %{print("tail: ", ids.newTail)%}
 
         return (circularBuffer, item);
     }
